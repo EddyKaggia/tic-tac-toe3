@@ -59,9 +59,9 @@ button:hover {
     rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
-/* .border {
+.border {
   border: 1px solid rgba(211, 211, 211, 0.4) !important;
-} */
+}
 
 .grid {
   display: grid;
@@ -80,8 +80,6 @@ button:hover {
 }
 
 .turn {
-  color: var(--yellow);
-
   grid-column-start: 1;
   grid-column-end: 3;
   align-self: center;
