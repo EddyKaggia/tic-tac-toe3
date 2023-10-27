@@ -15,6 +15,7 @@ export default class View {
     this.$.p1Wins = this.#qs('[data-id="p1-wins"]');
     this.$.p2Wins = this.#qs('[data-id="p2-wins"]');
     this.$.ties = this.#qs('[data-id="ties"]');
+    this.$.grid = this.#qs('[data-id="grid"]');
 
     this.$$.squares = this.#qsAll('[data-id="square"]');
 
@@ -23,6 +24,30 @@ export default class View {
       this.#toggleMenu();
     });
   }
+
+  render(game, stats) {
+    const { playerWithStats, ties } = stats;
+    const {
+      moves,
+      currentPlayer,
+      status: { isComplete, winner },
+    } = game;
+
+    this.#closeAll();
+    this.#clearMoves();
+    this.#updateScoreboard(
+      playerWithStats[0].wins,
+      playerWithStats[1].wins,
+      ties
+    );
+    this.#initializeMoves(moves);
+
+    if (isComplete) {
+      this.#openModal(winner ? `${winner.name} wins!` : "Tie!");
+    }
+    this.#setTurnIndicator(currentPlayer);
+  }
+
   /**
    *Register all the event listeners
    */
@@ -37,33 +62,41 @@ export default class View {
   }
 
   bindPlayerMoveEvent(handler) {
-    this.$$.squares.forEach((square) => {
-      square.addEventListener("click", () => handler(square));
-    });
+    this.#delegate(this.$.grid, '[data-id="square"]', "click", handler);
   }
 
   /**
    *DOM helper methods
    */
-  updateScoreboard(p1Wins, p2Wins, ties) {
+  #updateScoreboard(p1Wins, p2Wins, ties) {
     this.$.p1Wins.innerText = `${p1Wins} wins`;
     this.$.p2Wins.innerText = `${p2Wins} wins`;
     this.$.ties.innerText = `${ties} ties`;
   }
 
-  openModal(message) {
+  #openModal(message) {
     this.$.modal.classList.remove("hidden");
     this.$.modalText.innerText = message;
   }
 
-  closeAll() {
+  #closeAll() {
     this.#closeModal();
     this.#closeMenu();
   }
 
-  clearMoves() {
+  #clearMoves() {
     this.$$.squares.forEach((square) => {
       square.replaceChildren();
+    });
+  }
+
+  #initializeMoves(moves) {
+    this.$$.squares.forEach((square) => {
+      const existingMove = moves.find((move) => move.squareId === +square.id);
+
+      if (existingMove) {
+        this.#handlePlayerMove(square, existingMove.player);
+      }
     });
   }
 
@@ -91,14 +124,14 @@ export default class View {
     icon.classList.toggle("fa-chevron-down");
   }
 
-  handlePlayerMove(squareEl, player) {
+  #handlePlayerMove(squareEl, player) {
     const icon = document.createElement("i");
     icon.classList.add("fa-solid", player.iconClass, player.colorClass);
     squareEl.replaceChildren(icon);
   }
 
   // PLayer = 1 | 2
-  setTurnIndicator(player) {
+  #setTurnIndicator(player) {
     const icon = document.createElement("i");
     const label = document.createElement("p");
 
@@ -126,5 +159,22 @@ export default class View {
     if (!elList) throw new Error("Element not found");
 
     return elList;
+  }
+
+  /**
+   * Rather than registering event listeners on every child element in our Tic Tac Toe grid, we can
+   * listen to the grid container and derive which square was clicked using the matches() function.
+   *
+   * @param {*} el the "container" element you want to listen for events on
+   * @param {*} selector the "child" elements within the "container" you want to handle events for
+   * @param {*} eventKey the event type you are listening for (e.g. "click" event)
+   * @param {*} handler the callback function that is executed when the specified event is triggered on the specified children
+   */
+  #delegate(el, selector, eventKey, handler) {
+    el.addEventListener(eventKey, (event) => {
+      if (event.target.matches(selector)) {
+        handler(event.target);
+      }
+    });
   }
 }
