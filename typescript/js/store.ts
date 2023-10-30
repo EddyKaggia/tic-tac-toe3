@@ -1,6 +1,19 @@
-import type { GameState, Player } from "./types";
+import type { Game, GameState, GameStatus, Move, Player } from "./types";
 
-const initialValue: GameState = {
+type PlayerWithWins = Player & { wins: number };
+
+export type DerivedStats = {
+  playerWithStats: PlayerWithWins[];
+  ties: number;
+};
+
+export type DerivedGame = {
+  moves: Move[];
+  currentPlayer: Player;
+  status: GameStatus;
+};
+
+const initialState: GameState = {
   currentGameMoves: [],
   history: {
     currentRoundGames: [],
@@ -16,13 +29,13 @@ export default class Store extends EventTarget {
     super();
   }
 
-  get stats() {
+  get stats(): DerivedStats {
     const state = this.#getState();
 
     return {
       playerWithStats: this.players.map((player) => {
         const wins = state.history.currentRoundGames.filter(
-          (game) => game.status.winner?.id === player.id
+          (game: Game) => game.status.winner?.id === player.id
         ).length;
 
         return {
@@ -31,12 +44,12 @@ export default class Store extends EventTarget {
         };
       }),
       ties: state.history.currentRoundGames.filter(
-        (game) => game.status.winner === null
+        (game: Game) => game.status.winner === null
       ).length,
     };
   }
 
-  get game() {
+  get game(): DerivedGame {
     const state = this.#getState();
 
     const currentPlayer = this.players[state.currentGameMoves.length % 2];
@@ -56,8 +69,8 @@ export default class Store extends EventTarget {
 
     for (const player of this.players) {
       const selectedSquareIds = state.currentGameMoves
-        .filter((move) => move.player.id === player.id)
-        .map((move) => move.squareId);
+        .filter((move: Move) => move.player.id === player.id)
+        .map((move: Move) => move.squareId);
 
       for (const pattern of winningPatterns) {
         if (pattern.every((v) => selectedSquareIds.includes(v))) {
@@ -115,7 +128,7 @@ export default class Store extends EventTarget {
 
   #getState() {
     const item = window.localStorage.getItem(this.storageKey);
-    return item ? (JSON.parse(item) as GameState) : initialValue;
+    return item ? JSON.parse(item) : initialState;
   }
 
   #saveState(stateOrFn: GameState | ((prevState: GameState) => GameState)) {

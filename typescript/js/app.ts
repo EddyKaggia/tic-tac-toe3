@@ -1,9 +1,10 @@
 import Store from "./store.js";
+import { Move, Player } from "./types.js";
 import View from "./view.js";
 
 // document.addEventListener("DOMContentLoaded", App.init);
 
-const players = [
+const players: Player[] = [
   { id: 1, name: "Player 1", iconClass: "fa-x", colorClass: "turquoise" },
   { id: 2, name: "Player 2", iconClass: "fa-o", colorClass: "yellow" },
 ];
@@ -36,7 +37,7 @@ function init() {
 
   view.bindPlayerMoveEvent((square) => {
     const existingMove = store.game.moves.find(
-      (move) => move.squareId === +square.id
+      (move: Move) => move.squareId === +square.id
     );
 
     if (existingMove) {
