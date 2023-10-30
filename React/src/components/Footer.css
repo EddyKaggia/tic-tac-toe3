@@ -1,0 +1,11 @@
+/* Footer Styles */
+
+footer {
+  color: white;
+  margin-top: 50px;
+}
+
+footer p {
+  margin-top: 10px;
+  text-align: center;
+}
